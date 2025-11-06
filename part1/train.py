@@ -117,11 +117,21 @@ def train(args: argparse.Namespace) -> None:
     model_save_path.parent.mkdir(parents=True, exist_ok=True)
     print("Starting Training!")
 
-    wandb.init(
-        project=args.wandb_project,
-        name=args.wandb_run_name,
-        config={**model_config, **train_config},
-    )
+    # Initialize W&B if available, otherwise continue without it
+    use_wandb = False
+    try:
+        wandb.init(
+            project=args.wandb_project,
+            name=args.wandb_run_name,
+            config={**model_config, **train_config},
+        )
+        use_wandb = True
+        print("W&B initialized successfully")
+    except Exception as e:
+        print(f"W&B initialization failed: {e}")
+        print("Continuing training without W&B logging...")
+        use_wandb = False
+    
     best_dev_loss = float("inf")
     while True:
         epoch += 1
@@ -168,14 +178,15 @@ def train(args: argparse.Namespace) -> None:
 
                 train_time = time.time()
                 report_loss = report_tgt_words = report_examples = 0.0
-                wandb.log(
-                    {
-                        "iteration": train_iter,
-                        "train_loss": cum_loss / cum_tgt_words,
-                        "learning_rate": optimizer.param_groups[0]["lr"],
-                    },
-                    step=train_iter,
-                )
+                if use_wandb:
+                    wandb.log(
+                        {
+                            "iteration": train_iter,
+                            "train_loss": cum_loss / cum_tgt_words,
+                            "learning_rate": optimizer.param_groups[0]["lr"],
+                        },
+                        step=train_iter,
+                    )
 
             # perform validation
             if train_iter % train_config["valid_niter"] == 0:
@@ -193,10 +204,11 @@ def train(args: argparse.Namespace) -> None:
                 )
                 print(f"dev: iter {train_iter}, dev loss {dev_loss:.2f}")
 
-                wandb.log(
-                    {"dev_loss": dev_loss, "iteration": train_iter},
-                    step=train_iter,
-                )
+                if use_wandb:
+                    wandb.log(
+                        {"dev_loss": dev_loss, "iteration": train_iter},
+                        step=train_iter,
+                    )
 
                 if dev_loss < best_dev_loss:
                     best_dev_loss = dev_loss
