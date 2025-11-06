@@ -1,0 +1,95 @@
+_wandb:
+    value:
+        cli_version: 0.21.4
+        e:
+            lg1qrfcnbihh9g7s0pzzpske7e9vb2kh:
+                apple:
+                    ecpuCores: 4
+                    gpuCores: 8
+                    memoryGb: 8
+                    name: Apple M2
+                    pcpuCores: 4
+                    ramTotalBytes: "8589934592"
+                    swapTotalBytes: "1073741824"
+                args:
+                    - --model-config
+                    - model_config_small.yaml
+                    - --train-config
+                    - train_config.yaml
+                    - --wandb-project
+                    - nmt-project
+                    - --wandb-run-name
+                    - seq2seq-small
+                    - --checkpoint-path
+                    - ./models/small
+                codePath: part1/train.py
+                codePathLocal: train.py
+                cpu_count: 8
+                cpu_count_logical: 8
+                disk:
+                    /:
+                        total: "245107195904"
+                        used: "221692354560"
+                email: goudvarshit658@gmail.com
+                executable: /Library/Frameworks/Python.framework/Versions/3.13/bin/python3
+                git:
+                    commit: bf40bd8efb135beebcdf51290196426238c1c5ff
+                    remote: https://github.com/f21nl-heriot-watt/cw2_2025_2026-students.git
+                host: varshits-MacBook-Air.local
+                memory:
+                    total: "8589934592"
+                os: macOS-15.1.1-arm64-arm-64bit-Mach-O
+                program: /Users/varshit/Desktop/NLP_CW_2/cw2_2025_2026-students/part1/train.py
+                python: CPython 3.13.1
+                root: /Users/varshit/Desktop/NLP_CW_2/cw2_2025_2026-students/part1
+                startedAt: "2025-11-06T18:42:48.411304Z"
+                writerId: lg1qrfcnbihh9g7s0pzzpske7e9vb2kh
+        m: []
+        python_version: 3.13.1
+        t:
+            "1":
+                - 1
+                - 5
+                - 53
+            "2":
+                - 1
+                - 5
+                - 53
+            "3":
+                - 13
+                - 16
+                - 61
+            "4": 3.13.1
+            "5": 0.21.4
+            "8":
+                - 2
+            "12": 0.21.4
+            "13": darwin-arm64
+dev_batch_size:
+    value: 128
+dropout_rate:
+    value: 0.2
+embed_size:
+    value: 16
+hidden_size:
+    value: 16
+log_every:
+    value: 10
+lr:
+    value: 0.001
+lr_decay:
+    value: 0.5
+max_epoch:
+    value: 30
+max_num_trial:
+    value: 5
+patience:
+    value: 1
+seed:
+    value: 0
+train_batch_size:
+    value: 32
+uniform_init:
+    value: 0.1
+valid_niter:
+    value: 2000
