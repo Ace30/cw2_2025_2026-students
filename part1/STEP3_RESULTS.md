@@ -62,3 +62,4 @@ The large model configuration achieved the best performance with a BLEU score of
 
 While the large model achieves the best performance, there may be room for further improvement with even larger models (e.g., the 550/550 configuration) or through other architectural improvements such as deeper networks, different attention mechanisms, or training strategies. However, the current results clearly establish the importance of model capacity as a fundamental hyperparameter in neural machine translation systems.
 
+

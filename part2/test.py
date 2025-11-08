@@ -72,7 +72,7 @@ def evaluate(args):
     references = []
     predictions = []
     with torch.inference_mode():
-        for src_sent in tqdm(test_data_src, desc="Generating Predictions"):
+        for src_sent, tgt_sent in zip(test_data_src, test_data_tgt) if test_data_tgt else zip(test_data_src, [None] * len(test_data_src)):
             subword_tokens = sp.encode_as_pieces(src_sent)
             inputs = vocab.src.to_input_tensor([subword_tokens], device=device)
 
@@ -86,31 +86,40 @@ def evaluate(args):
                 temperature=args.temperature,
             ).sequences[0]
 
-            predictions.append(
-                "".join(
-                    [
-                        vocab.src.id2word[y_t.item()]
-                        for y_t in generated_output[len(inputs[0]) : -1]
-                    ]
-                )
-                .replace("▁", " ")
-                .strip()
-            )
+            # Extract generated tokens (skip the input part)
+            generated_tokens = [
+                vocab.src.id2word[y_t.item()]
+                for y_t in generated_output[len(inputs[0]):]
+            ]
+            predictions.append(generated_tokens)
 
-            references.append(src_sent)
+            # Tokenize reference if available
+            if tgt_sent:
+                ref_tokens = sp.encode_as_pieces(tgt_sent)
+                references.append(ref_tokens)
 
     output_file = args.output_file
     output_file.parent.mkdir(parents=True, exist_ok=True)
 
-    bleu_score = compute_corpus_level_bleu_score(test_data_tgt, predictions)
+    bleu_score = None
+    if references:
+        bleu_score = compute_corpus_level_bleu_score(references, predictions)
     print(f"Corpus BLEU score = {bleu_score:.2f}")
 
     print(f"Saving predictions to {output_file}")
     with open(output_file, "w") as f:
+        # Detokenize for human readability
+        detokened_preds = [
+            "".join(value).replace("▁", " ").strip() for value in predictions
+        ]
+        detokened_refs = [
+            "".join(pieces).replace("▁", " ").strip() for pieces in references
+        ] if references else test_data_tgt
+        
         data = {
             "bleu_score": bleu_score,
-            "predictions": predictions,
-            "references": test_data_tgt,
+            "predictions": detokened_preds,
+            "references": detokened_refs if isinstance(detokened_refs, list) else test_data_tgt,
         }
         json.dump(data, f, indent=4)
 

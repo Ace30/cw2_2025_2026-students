@@ -121,23 +121,43 @@ class CausalSelfAttention(nn.Module):
                 attentions: (optional) Tensor of shape (B, nh, T, T) where nh is the number of heads.
         """
         B, T, C = x.size()
-        ### Your code here (~8-15 lines) ###
-        raise NotImplementedError("Implement the forward method in CausalSelfAttention in model.py")
+        nh = self.n_head  # number of heads
+        hs = C // nh  # head size
+        
         # Step 1: Calculate query, key, values for all heads
-        # (B, nh, T, hs)
+        # (B, T, C) -> (B, T, C) for each of Q, K, V
+        q = self.query(x)  # (B, T, C)
+        k = self.key(x)    # (B, T, C)
+        v = self.value(x)  # (B, T, C)
+        
+        # Reshape to (B, nh, T, hs)
+        q = q.view(B, T, nh, hs).transpose(1, 2)  # (B, nh, T, hs)
+        k = k.view(B, T, nh, hs).transpose(1, 2)  # (B, nh, T, hs)
+        v = v.view(B, T, nh, hs).transpose(1, 2)  # (B, nh, T, hs)
       
         # Step 2: Compute attention scores
         # Self-attend: (B, nh, T, hs) x (B, nh, hs, T) -> (B, nh, T, T)
+        att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(hs))  # (B, nh, T, T)
 
         # Step 3: Masking out the future tokens (causal) and softmax
+        # Apply causal mask: mask out positions where mask == 0
+        att = att.masked_fill(self.mask[:, :, :T, :T] == 0, float('-inf'))
+        att = F.softmax(att, dim=-1)  # (B, nh, T, T)
+        att = self.attn_drop(att)
 
         # Step 4: Compute the attention output
         # (B, nh, T, T) x (B, nh, T, hs) -> (B, nh, T, hs)
+        y = att @ v  # (B, nh, T, hs)
 
         # Step 5: re-assemble all head outputs side by side
-        # (B, T, nh, hs) -> (B, T, C)
+        # (B, nh, T, hs) -> (B, T, nh, hs) -> (B, T, C)
+        y = y.transpose(1, 2).contiguous().view(B, T, C)  # (B, T, C)
 
         # Step 6: output projection + dropout
+        y = self.resid_drop(self.proj(y))  # (B, T, C)
+        
+        # Return attention scores if requested
+        attention = att if output_attentions else None
         ### End of your code ###
         return GPTAttentionOutput(output=y, attentions=attention)
 
