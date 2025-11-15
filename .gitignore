@@ -205,3 +205,8 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Large model files (ignore xlarge models and any large files)
+part1/models/xlarge/*.model
+part1/models/xlarge/*.model.optim
+part4/*.model
